@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: salon-service
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  datasource:
+    url: jdbc:mysql://localhost:3306/salondb
+    username: root
+    password: yasindusql
+    driver-class-name: com.mysql.cj.jdbc.Driver
+server:
+  port: 8081
+

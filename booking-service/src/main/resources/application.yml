@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: booking-service
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  datasource:
+    url: jdbc:mysql://localhost:3306/bookingdb
+    username: root
+    password: yasindusql
+    driver-class-name: com.mysql.cj.jdbc.Driver
+server:
+  port: 8084
+
