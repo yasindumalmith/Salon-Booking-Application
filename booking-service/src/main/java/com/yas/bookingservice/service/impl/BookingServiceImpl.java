@@ -13,6 +13,7 @@ import com.yas.bookingservice.service.BookingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -42,15 +43,20 @@ public class BookingServiceImpl implements BookingService {
                 .map(ServiceDTO::getId)
                 .collect(Collectors.toSet());
 
-        Booking bookingEntity = new Booking();
-        bookingEntity.setCustomerId(user.getId());
-        bookingEntity.setSalonId(salon.getId());
-        bookingEntity.setServiceIds(idList);
-        bookingEntity.setStatus(BookingStatus.PENDING);
-        bookingEntity.setStartTime(bookingStartTime);
-        bookingEntity.setEndTime(bookingEndTime);
-        bookingEntity.setTotalPrice(totalPrice);
-        return bookingRepository.save(bookingEntity);
+        if(isSlotAvailable){
+            Booking bookingEntity = new Booking();
+            bookingEntity.setCustomerId(user.getId());
+            bookingEntity.setSalonId(salon.getId());
+            bookingEntity.setServiceIds(idList);
+            bookingEntity.setStatus(BookingStatus.PENDING);
+            bookingEntity.setStartTime(bookingStartTime);
+            bookingEntity.setEndTime(bookingEndTime);
+            bookingEntity.setTotalPrice(totalPrice);
+            return bookingRepository.save(bookingEntity);
+        }
+        throw new Exception("Cannot create booking try with different time");
+
+
 
     }
 
@@ -84,31 +90,63 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<Booking> getBookingsByCustomer(Long customerId) {
-        return List.of();
+        return bookingRepository.findByCustomerId(customerId);
     }
 
     @Override
-    public Booking getBookingById(Long id) {
-        return null;
+    public Booking getBookingById(Long id) throws Exception {
+        Booking bookingEntity = bookingRepository.findById(id).orElse(null);
+        if (bookingEntity != null) {
+            return bookingEntity;
+        }else {
+            throw new Exception("Booking Id is not Available");
+        }
     }
 
     @Override
-    public Booking updateBooking(Long bookingId, BookingRequest booking) {
-        return null;
+    public Booking updateBooking(Long bookingId, BookingStatus status) throws Exception {
+        Booking bookingEntity = getBookingById(bookingId);
+        bookingEntity.setStatus(status);
+        return bookingRepository.save(bookingEntity);
     }
 
     @Override
-    public List<Booking> getBookingByDate(LocalDateTime date, Long salonId) {
-        return List.of();
+    public List<Booking> getBookingByDate(LocalDate date, Long salonId) {
+        List<Booking> booking = getBookingBySalon(salonId);
+        if(date==null){
+            return booking;
+        }else {
+           return booking.stream()
+                   .filter(b->b.getStartTime().toLocalDate().equals(date))
+                   .collect(Collectors.toList());
+        }
     }
 
     @Override
     public SalonReport getSalonReport(Long salonId) {
-        return null;
+        List<Booking> booking = getBookingBySalon(salonId);
+        Double totalPrice = booking.stream().mapToDouble(Booking::getTotalPrice).sum();
+
+        Integer totalBooking=booking.size();
+        List<Booking> cancelBookings = booking.stream()
+                .filter(booking1 -> booking1.getStatus().equals(BookingStatus.CANCELLED))
+                .collect(Collectors.toList());
+
+        Double totalRefund = cancelBookings.stream()
+                .mapToDouble(Booking::getTotalPrice).sum();
+
+        SalonReport salonReport = new SalonReport();
+        salonReport.setSalonId(salonId);
+        salonReport.setCancelledBookings(cancelBookings.size());
+        salonReport.setTotalBookings(totalBooking);
+        salonReport.setTotalRefund(totalRefund);
+        salonReport.setTotalEarnings(totalPrice);
+        return salonReport;
+
     }
 
     @Override
     public List<Booking> getBookingBySalon(Long salonId) {
-        return List.of();
+        return bookingRepository.findBySalonId(salonId);
     }
 }
