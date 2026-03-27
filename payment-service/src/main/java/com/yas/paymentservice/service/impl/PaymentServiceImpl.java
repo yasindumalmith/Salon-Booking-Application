@@ -2,10 +2,10 @@ package com.yas.paymentservice.service.impl;
 
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
-import com.stripe.model.PaymentLink;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
 import com.yas.paymentservice.domain.PaymentMethod;
+import com.yas.paymentservice.domain.PaymentOrderStatus;
 import com.yas.paymentservice.model.PaymentOrder;
 import com.yas.paymentservice.payload.dto.BookingDTO;
 import com.yas.paymentservice.payload.dto.UserDTO;
@@ -15,7 +15,6 @@ import com.yas.paymentservice.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.annotation.RequestScope;
 
 @Service
 @RequiredArgsConstructor
@@ -100,6 +99,19 @@ public class PaymentServiceImpl implements PaymentService {
         // 4. Create the session and return the URL
         Session session = Session.create(params);
         return session.getUrl();
+    }
+
+    @Override
+    public PaymentOrder proceedPayment(PaymentOrder paymentOrder, String paymentId, String paymentLinkId) {
+        if (paymentOrder.getStatus().equals(PaymentOrderStatus.PENDING)) {
+            if (paymentOrder.getPaymentMethod().equals(PaymentMethod.STRIPE)) {
+                paymentOrder.setPaymentLinkedId(paymentLinkId);
+            }
+            paymentOrder.setStatus(PaymentOrderStatus.SUCCESS);
+        } else {
+            paymentOrder.setStatus(PaymentOrderStatus.FAILED);
+        }
+        return paymentRepository.save(paymentOrder);
     }
 }
 
