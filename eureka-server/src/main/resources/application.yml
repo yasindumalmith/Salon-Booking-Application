@@ -12,5 +12,5 @@ eureka:
     fetch-registry: false
     register-with-eureka: false
     service-url:
-      defaultZosh: "http://${eureka.instance.hostname}:${server.port}/eureka/"
+      defaultZone: "http://${eureka.instance.hostname}:${server.port}/eureka/"
 
