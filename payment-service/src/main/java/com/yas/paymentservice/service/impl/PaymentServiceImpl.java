@@ -1,6 +1,10 @@
 package com.yas.paymentservice.service.impl;
 
+import com.stripe.Stripe;
+import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentLink;
+import com.stripe.model.checkout.Session;
+import com.stripe.param.checkout.SessionCreateParams;
 import com.yas.paymentservice.domain.PaymentMethod;
 import com.yas.paymentservice.model.PaymentOrder;
 import com.yas.paymentservice.payload.dto.BookingDTO;
@@ -27,8 +31,8 @@ public class PaymentServiceImpl implements PaymentService {
 
 
     @Override
-    public PaymentLinkResponse createOrder(UserDTO userDTO, BookingDTO bookingDTO, PaymentMethod paymentMethod) {
-        Long amount=(long)bookingDTO.getTotalPrice();
+    public PaymentLinkResponse createOrder(UserDTO userDTO, BookingDTO bookingDTO, PaymentMethod paymentMethod) throws StripeException {
+        Long amount = (long) bookingDTO.getTotalPrice();
 
         PaymentOrder paymentOrder = new PaymentOrder();
         paymentOrder.setAmount(amount);
@@ -39,8 +43,8 @@ public class PaymentServiceImpl implements PaymentService {
 
         PaymentLinkResponse paymentLinkResponse = new PaymentLinkResponse();
 
-        if(paymentMethod.equals(PaymentMethod.STRIPE)){
-            String paymentUrl=createStripePaymentLink(userDTO, savedOrder.getAmount(), savedOrder.getId());
+        if (paymentMethod.equals(PaymentMethod.STRIPE)) {
+            String paymentUrl = createStripePaymentLink(userDTO, savedOrder.getAmount(), savedOrder.getId());
             paymentLinkResponse.setPayment_link_url(paymentUrl);
         }
         return paymentLinkResponse;
@@ -49,20 +53,53 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public PaymentOrder getPaymentOrderById(Long id) throws Exception {
         PaymentOrder paymentOrder = paymentRepository.findById(id).orElse(null);
-        if(paymentOrder != null){
+        if (paymentOrder != null) {
             return paymentOrder;
-        }else{
+        } else {
             throw new Exception("Payment Order not found");
         }
     }
 
     @Override
-    public PaymentOrder getPaymentOrderByPaymentId(Long paymentId) {
-        return null;
+    public PaymentOrder getPaymentOrderByPaymentId(String paymentId) {
+        return paymentRepository.findByPaymentLinkedId(paymentId);
     }
 
     @Override
-    public String createStripePaymentLink(UserDTO userDTO, Long amount, Long orderId) {
-        return "";
+    public String createStripePaymentLink(UserDTO userDTO, Long amount, Long orderId) throws StripeException {
+        Stripe.apiKey = stripeAPIKey;
+
+        SessionCreateParams params = SessionCreateParams.builder()
+                // Accept card payments
+                .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
+                .setMode(SessionCreateParams.Mode.PAYMENT)
+
+                // Where Stripe redirects the user after they pay (or cancel)
+                .setSuccessUrl("http://localhost:3000/payment/success" + orderId)
+                .setCancelUrl("http://localhost:3000/payment/cancel")
+
+
+                // 3. Define what the user is paying for
+                .addLineItem(
+                        SessionCreateParams.LineItem.builder()
+                                .setQuantity(1L)
+                                .setPriceData(
+                                        SessionCreateParams.LineItem.PriceData.builder()
+                                                .setCurrency("lkr") // Change to 'usd' if needed
+                                                // Stripe expects amounts in the smallest currency unit (e.g., cents)
+                                                // So we multiply by 100. (Rs 1500 -> 150000)
+                                                .setUnitAmount(amount * 100)
+                                                .setProductData(
+                                                        SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                                                .setName("Salon Booking Appointment #" + orderId)
+                                                                .build())
+                                                .build())
+                                .build())
+                .build();
+
+        // 4. Create the session and return the URL
+        Session session = Session.create(params);
+        return session.getUrl();
     }
 }
+
