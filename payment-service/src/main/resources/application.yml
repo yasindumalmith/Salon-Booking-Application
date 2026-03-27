@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: payment-service
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  datasource:
+    url: jdbc:mysql://localhost:3306/paymentdb?
+    username: root
+    password: yasindusql
+    driver-class-name: com.mysql.cj.jdbc.Driver
+server:
+  port: 8085
+
+
+stripe:
+  api:
+    key: "stripe api key"
+    secret: "secret key"
