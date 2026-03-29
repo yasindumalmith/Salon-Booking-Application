@@ -171,4 +171,25 @@ public class KeyClockService {
             throw new Exception("Failed assign new Role "+ e.getMessage());
         }
     }
+    public KeyClockUserDTO fetchUserProfileByJwt(String token) throws Exception {
+        String url = KEYCLOCK_BASE_URL +
+                "/realms/master/protocol/openid-connect/userinfo";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+
+        HttpEntity<Void> request = new HttpEntity<>(headers);
+        try {
+            ResponseEntity<KeyClockUserDTO> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    request,
+                    KeyClockUserDTO.class
+            );
+            return response.getBody();
+        }catch (Exception e){
+            throw new Exception("Failed to "+ e.getMessage());
+        }
+
+    }
 }

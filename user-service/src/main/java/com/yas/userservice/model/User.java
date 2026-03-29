@@ -1,10 +1,7 @@
 package com.yas.userservice.model;
 
 import com.yas.userservice.domain.UserRole;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -36,7 +33,7 @@ public class User {
 
     private String phone;
 
-    @NotBlank(message = "Role is mandetory")
+    @Column(nullable = false)
     private UserRole role;
 
     @CreationTimestamp
