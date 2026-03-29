@@ -1,5 +1,6 @@
 package com.yas.userservice.model;
 
+import com.yas.userservice.domain.UserRole;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -36,7 +37,7 @@ public class User {
     private String phone;
 
     @NotBlank(message = "Role is mandetory")
-    private String role;
+    private UserRole role;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
