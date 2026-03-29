@@ -44,6 +44,7 @@ public class KeyClockService {
         userRequest.setFirstName(signupDTO.getFirstName());
         userRequest.setLastName(signupDTO.getLastName());
         userRequest.setEnabled(true);
+        userRequest.setCredentials(List.of(credential));
 
         HttpHeaders headers=new org.springframework.http.HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -97,7 +98,22 @@ public class KeyClockService {
     }
 
     public KeyClockRole getRoleByName(String clientId, String token, String role){
-        
+        String url = KEYCLOCK_BASE_URL +
+                "/admin/realms/master/clients/" + clientId + "/roles/" + role;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+
+        HttpEntity<Void> request = new HttpEntity<>(headers);
+
+        ResponseEntity<KeyClockRole> response = restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                request,
+                KeyClockRole.class
+        );
+
+        return response.getBody();
     }
 
     public KeyClockUserDTO fetchFirstUserByUserName(String username, String token){
@@ -124,6 +140,21 @@ public class KeyClockService {
         throw new RuntimeException("User not found in Keycloak");
     }
     public void assignRoleToUser(String userId, String clientId, List<KeyClockRole> roles, String token){
+        String url = KEYCLOCK_BASE_URL +
+                "/admin/realms/master/users/" + userId +
+                "/role-mappings/clients/" + clientId;
 
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(token);
+
+        HttpEntity<List<KeyClockRole>> request = new HttpEntity<>(roles, headers);
+
+        restTemplate.exchange(
+                url,
+                HttpMethod.POST,
+                request,
+                Void.class
+        );
     }
 }
