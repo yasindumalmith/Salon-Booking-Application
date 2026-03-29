@@ -1,15 +1,12 @@
 package com.yas.userservice.payload.response.dto;
 
-import com.yas.userservice.domain.UserRole;
 import lombok.Data;
 
 @Data
-public class SignupDTO {
+public class KeyClockUserDTO {
+    private String id;
     private String firstName;
     private String lastName;
     private String email;
-    private String password;
-    private String username;
-    private UserRole role;
-
+    private String userName;
 }

@@ -1,12 +1,15 @@
 package com.yas.userservice.service;
 
-import com.yas.userservice.payload.response.dto.Credential;
-import com.yas.userservice.payload.response.dto.SignupDTO;
-import com.yas.userservice.payload.response.dto.UserRequest;
+import com.yas.userservice.payload.response.dto.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -26,9 +29,9 @@ public class KeyClockService {
 
     private final RestTemplate restTemplate;
 
-    public void createUser(SignupDTO signupDTO){
+    public void createUser(SignupDTO signupDTO) throws Exception {
 
-        String ACCESS_TOKEN="";
+        String ACCESS_TOKEN=getAdminAccessToken(username,password,GRANT_TYPE,null).getAccessToken();
 
         Credential credential=new Credential();
         credential.setType("password");
@@ -52,8 +55,75 @@ public class KeyClockService {
                 KEYCLOCK_ADMIN_API, HttpMethod.POST,request,String.class
         );
 
-        if(response.getStatusCode()==HttpStatus.OK){
+        if(response.getStatusCode()==HttpStatus.CREATED){
             System.out.println("User created successfully");
+
+            KeyClockUserDTO user=fetchFirstUserByUserName(signupDTO.getUsername(),ACCESS_TOKEN);
+
+            KeyClockRole role=getRoleByName(clientId,ACCESS_TOKEN, signupDTO.getRole().toString());
+
+            List<KeyClockRole> roles=new ArrayList<>();
+            roles.add(role);
+
+            assignRoleToUser(user.getId(),clientId,roles,ACCESS_TOKEN);
+        }else{
+            System.out.println("User creation failed");
+            throw new Exception(response.getBody());
         }
+    }
+
+    public TokenResponse getAdminAccessToken(String username, String password, String grantType, String refreshToken){
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("client_id", CLIENT_ID);
+        body.add("client_secret", CLIENT_SECRET);
+        body.add("grant_type", grantType);
+        body.add("username", username);
+        body.add("password", password);
+        body.add("scope", scope);
+
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
+
+        ResponseEntity<TokenResponse> response = restTemplate.exchange(
+                TOKEN_URL,
+                HttpMethod.POST,
+                request,
+                TokenResponse.class
+        );
+
+        return response.getBody();
+    }
+
+    public KeyClockRole getRoleByName(String clientId, String token, String role){
+        
+    }
+
+    public KeyClockUserDTO fetchFirstUserByUserName(String username, String token){
+        String url = KEYCLOCK_ADMIN_API + "?username=" + username;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+
+        HttpEntity<Void> request = new HttpEntity<>(headers);
+
+        ResponseEntity<KeyClockUserDTO[]> response = restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                request,
+                KeyClockUserDTO[].class
+        );
+
+        KeyClockUserDTO[] users = response.getBody();
+
+        if (users != null && users.length > 0) {
+            return users[0];
+        }
+
+        throw new RuntimeException("User not found in Keycloak");
+    }
+    public void assignRoleToUser(String userId, String clientId, List<KeyClockRole> roles, String token){
+
     }
 }
