@@ -73,7 +73,7 @@ public class KeyClockService {
         }
     }
 
-    public TokenResponse getAdminAccessToken(String username, String password, String grantType, String refreshToken){
+    public TokenResponse getAdminAccessToken(String username, String password, String grantType, String refreshToken) throws Exception {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
@@ -81,6 +81,7 @@ public class KeyClockService {
         body.add("client_id", CLIENT_ID);
         body.add("client_secret", CLIENT_SECRET);
         body.add("grant_type", grantType);
+        body.add("refresh_token", refreshToken);
         body.add("username", username);
         body.add("password", password);
         body.add("scope", scope);
@@ -94,7 +95,11 @@ public class KeyClockService {
                 TokenResponse.class
         );
 
-        return response.getBody();
+        if(response.getStatusCode()==HttpStatus.OK && response.getBody()!=null){
+            return response.getBody();
+        }
+        throw new Exception("Failed generate token");
+
     }
 
     public KeyClockRole getRoleByName(String clientId, String token, String role){
@@ -102,7 +107,8 @@ public class KeyClockService {
                 "/admin/realms/master/clients/" + clientId + "/roles/" + role;
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(token);
+        headers.set("Authorization", "Bearer "+token);
+        headers.setContentType(MediaType.APPLICATION_JSON);
 
         HttpEntity<Void> request = new HttpEntity<>(headers);
 
@@ -121,6 +127,7 @@ public class KeyClockService {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(token);
+        headers.setContentType(MediaType.APPLICATION_JSON);
 
         HttpEntity<Void> request = new HttpEntity<>(headers);
 
@@ -139,22 +146,28 @@ public class KeyClockService {
 
         throw new RuntimeException("User not found in Keycloak");
     }
-    public void assignRoleToUser(String userId, String clientId, List<KeyClockRole> roles, String token){
-        String url = KEYCLOCK_BASE_URL +
-                "/admin/realms/master/users/" + userId +
-                "/role-mappings/clients/" + clientId;
+    public void assignRoleToUser(String userId, String clientId, List<KeyClockRole> roles, String token) throws Exception {
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setBearerAuth(token);
+        try{
+            String url = KEYCLOCK_BASE_URL +
+                    "/admin/realms/master/users/" + userId +
+                    "/role-mappings/clients/" + clientId;
 
-        HttpEntity<List<KeyClockRole>> request = new HttpEntity<>(roles, headers);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(token);
 
-        restTemplate.exchange(
-                url,
-                HttpMethod.POST,
-                request,
-                Void.class
-        );
+            HttpEntity<List<KeyClockRole>> request = new HttpEntity<>(roles, headers);
+
+            restTemplate.exchange(
+                    url,
+                    HttpMethod.POST,
+                    request,
+                    Void.class
+            );
+
+        }catch (Exception e){
+            throw new Exception("Failed assign new Role "+ e.getMessage());
+        }
     }
 }
