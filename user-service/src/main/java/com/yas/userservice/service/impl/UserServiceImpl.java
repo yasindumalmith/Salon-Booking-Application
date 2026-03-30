@@ -2,7 +2,9 @@ package com.yas.userservice.service.impl;
 
 import com.yas.userservice.exception.UserException;
 import com.yas.userservice.model.User;
+import com.yas.userservice.payload.response.dto.KeyClockUserDTO;
 import com.yas.userservice.repository.UserRepository;
+import com.yas.userservice.service.KeyClockService;
 import com.yas.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,8 @@ public class UserServiceImpl implements UserService {
 
 
     private final UserRepository userRepository;
+    private final KeyClockService keyClockService;
+
     @Override
     public void createUser(User user) {
         userRepository.save(user);
@@ -58,5 +62,16 @@ public class UserServiceImpl implements UserService {
         }else {
             throw new Exception("User not found");
         }
+    }
+
+    @Override
+    public String getUserFromJWT(String token) throws Exception {
+        KeyClockUserDTO keyClockUserDTO=keyClockService.fetchUserProfileByJwt(token);
+        User user= userRepository.findByEmail(keyClockUserDTO.getEmail());
+        /*if(user==null){
+            throw new UserException("User not found");
+        }
+        return user;*/
+        return user.getEmail();
     }
 }

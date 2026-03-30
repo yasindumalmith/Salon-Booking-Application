@@ -3,9 +3,8 @@ package com.yas.userservice.payload.response.dto;
 import lombok.Data;
 
 @Data
-public class KeyClockUserDTO {
-    private String sub;
-    private String preferred_username;
+public class UserDTO {
+    private Long id;
+    private String fullName;
     private String email;
-
 }

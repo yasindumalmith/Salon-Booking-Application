@@ -1,6 +1,7 @@
 package com.yas.userservice.service;
 
 import com.yas.userservice.payload.response.dto.*;
+import com.yas.userservice.payload.response.dto.KeyClockUserDTO;
 import com.yas.userservice.payload.response.dto.TokenResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
@@ -67,7 +68,7 @@ public class KeyClockService {
             List<KeyClockRole> roles=new ArrayList<>();
             roles.add(role);
 
-            assignRoleToUser(user.getId(),clientId,roles,ACCESS_TOKEN);
+            assignRoleToUser(user.getSub(),clientId,roles,ACCESS_TOKEN);
         }else{
             System.out.println("User creation failed");
             throw new Exception(response.getBody());
@@ -171,14 +172,19 @@ public class KeyClockService {
             throw new Exception("Failed assign new Role "+ e.getMessage());
         }
     }
-    public KeyClockUserDTO fetchUserProfileByJwt(String token) throws Exception {
+    public KeyClockUserDTO fetchUserProfileByJwt(String token) throws RuntimeException {
+
         String url = KEYCLOCK_BASE_URL +
                 "/realms/master/protocol/openid-connect/userinfo";
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(token);
+        // Strip "Bearer " prefix if present — the controller passes the raw Authorization header value
+        String rawToken = token.startsWith("Bearer ") ? token.substring(7) : token;
 
-        HttpEntity<Void> request = new HttpEntity<>(headers);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(rawToken);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<Void> request=new HttpEntity<>(headers);
         try {
             ResponseEntity<KeyClockUserDTO> response = restTemplate.exchange(
                     url,
@@ -188,7 +194,8 @@ public class KeyClockService {
             );
             return response.getBody();
         }catch (Exception e){
-            throw new Exception("Failed to "+ e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to "+ e.getMessage());
         }
 
     }

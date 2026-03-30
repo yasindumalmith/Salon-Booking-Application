@@ -1,7 +1,10 @@
 package com.yas.userservice.controller;
 
 import com.yas.userservice.exception.UserException;
+import com.yas.userservice.mapper.UserMapper;
 import com.yas.userservice.model.User;
+import com.yas.userservice.payload.response.dto.KeyClockUserDTO;
+import com.yas.userservice.payload.response.dto.UserDTO;
 import com.yas.userservice.repository.UserRepository;
 import com.yas.userservice.service.UserService;
 import jakarta.validation.Valid;
@@ -54,5 +57,17 @@ public class UserController {
     public ResponseEntity<String> deleteUser(@PathVariable Long id) throws Exception {
         userService.deleteUserById(id);
         return new ResponseEntity<>("User has been deleted", HttpStatus.OK);
+    }
+
+    @GetMapping("/api/users/profile")
+    public String getUserProfile(@RequestHeader("Authorization") String token) throws Exception {
+        /*User user = userService.getUserFromJWT(token);
+        if (user == null) {
+            throw new UserException("User not found");
+        }
+        UserDTO userDTO = UserMapper.mapUserToDTO(user);
+        return new ResponseEntity<>(userDTO, HttpStatus.OK);*/
+        //return new ResponseEntity<>(userService.getUserFromJWT(token), HttpStatus.OK);
+        return userService.getUserFromJWT(token);
     }
 }
