@@ -45,9 +45,14 @@ spring:
               uri:
                 "lb://USER-SERVICE"
               predicates:
-                - Path= /api/users/**, /auth/+*, /api/admin/users/**, /users/**
+                - Path= /api/users/**, /auth/**, /api/admin/users/**, /users/**
 
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8001/realms/master
 
 server:
   port: 8000
