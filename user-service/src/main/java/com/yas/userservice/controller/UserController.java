@@ -60,14 +60,16 @@ public class UserController {
     }
 
     @GetMapping("/api/users/profile")
-    public String getUserProfile(@RequestHeader("Authorization") String token) throws Exception {
-        /*User user = userService.getUserFromJWT(token);
+    public ResponseEntity<UserDTO> getUserProfile(@RequestHeader("Authorization") String token) throws Exception {
+        User user = userService.getUserFromJWT(token);
         if (user == null) {
             throw new UserException("User not found");
         }
         UserDTO userDTO = UserMapper.mapUserToDTO(user);
-        return new ResponseEntity<>(userDTO, HttpStatus.OK);*/
+        return new ResponseEntity<>(userDTO, HttpStatus.OK);
         //return new ResponseEntity<>(userService.getUserFromJWT(token), HttpStatus.OK);
-        return userService.getUserFromJWT(token);
+
+
+
     }
 }

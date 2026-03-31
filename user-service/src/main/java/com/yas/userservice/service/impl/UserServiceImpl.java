@@ -65,13 +65,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String getUserFromJWT(String token) throws Exception {
+    public User getUserFromJWT(String token) throws Exception {
         KeyClockUserDTO keyClockUserDTO=keyClockService.fetchUserProfileByJwt(token);
-        User user= userRepository.findByEmail(keyClockUserDTO.getEmail());
-        /*if(user==null){
-            throw new UserException("User not found");
-        }
-        return user;*/
-        return user.getEmail();
+
+        return userRepository.findByEmail(keyClockUserDTO.getEmail());
+        //return keyClockUserDTO.getEmail();
+
     }
 }

@@ -68,7 +68,7 @@ public class KeyClockService {
             List<KeyClockRole> roles=new ArrayList<>();
             roles.add(role);
 
-            assignRoleToUser(user.getSub(),clientId,roles,ACCESS_TOKEN);
+            assignRoleToUser(user.getId(),clientId,roles,ACCESS_TOKEN);
         }else{
             System.out.println("User creation failed");
             throw new Exception(response.getBody());
@@ -109,7 +109,7 @@ public class KeyClockService {
                 "/admin/realms/master/clients/" + clientId + "/roles/" + role;
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer "+token);
+        headers.setBearerAuth(token);
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         HttpEntity<Void> request = new HttpEntity<>(headers);
@@ -156,8 +156,8 @@ public class KeyClockService {
                     "/role-mappings/clients/" + clientId;
 
             HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBearerAuth(token);
+            headers.setContentType(MediaType.APPLICATION_JSON);
 
             HttpEntity<List<KeyClockRole>> request = new HttpEntity<>(roles, headers);
 
@@ -194,7 +194,6 @@ public class KeyClockService {
             );
             return response.getBody();
         }catch (Exception e){
-            e.printStackTrace();
             throw new RuntimeException("Failed to "+ e.getMessage());
         }
 
