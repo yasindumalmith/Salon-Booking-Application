@@ -23,6 +23,8 @@ public class CategoryController {
         return ResponseEntity.ok(getAllCategoriesBySalon);
     }
 
+
+
     @GetMapping("/salon/{salonId}/category/{categoryId}")
     public ResponseEntity<Category> getCategoryByIdAndSalon(
             @PathVariable("salonId")  Long id,

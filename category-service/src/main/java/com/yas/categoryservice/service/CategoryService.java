@@ -1,6 +1,7 @@
 package com.yas.categoryservice.service;
 
 
+import com.yas.categoryservice.dto.CategoryDTO;
 import com.yas.categoryservice.dto.SalonDTO;
 import com.yas.categoryservice.model.Category;
 

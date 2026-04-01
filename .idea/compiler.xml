@@ -20,7 +20,7 @@
         <module name="eureka-server" />
         <module name="gateway-server" />
       </profile>
-      <profile name="Annotation profile for service-offering" enabled="true">
+      <profile name="Annotation profile for category-service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -28,8 +28,8 @@
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.44/lombok-1.18.44.jar" />
         </processorPath>
         <module name="salon-service" />
-        <module name="payment-service" />
         <module name="category-service" />
+        <module name="payment-service" />
         <module name="service-offering" />
         <module name="booking-service" />
       </profile>
