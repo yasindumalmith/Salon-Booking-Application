@@ -1,6 +1,7 @@
 package com.yas.salonservice.mapper;
 
 import com.yas.salonservice.dto.SalonDTO;
+import com.yas.salonservice.dto.UserDTO;
 import com.yas.salonservice.model.Salon;
 
 public class SalonMapper {

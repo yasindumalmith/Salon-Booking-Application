@@ -23,7 +23,7 @@ public class SalonServiceImpl implements SalonService {
         salon1.setEmail(salon.getEmail());
         salon1.setCity(salon.getCity());
         salon1.setImages(salon.getImages());
-        salon1.setOwnerId(salon.getOwnerId());
+        salon1.setOwnerId(user.getId());
         salon1.setOpeningTime(salon.getOpeningTime());
         salon1.setClosingTime(salon.getClosingTime());
         salon1.setPhoneNumber(salon.getPhoneNumber());
