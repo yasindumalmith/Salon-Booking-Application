@@ -6,6 +6,7 @@ import com.yas.salonservice.mapper.SalonMapper;
 import com.yas.salonservice.model.Salon;
 import com.yas.salonservice.repository.SalonRepository;
 import com.yas.salonservice.service.SalonService;
+import com.yas.salonservice.service.client.UserFeignClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,11 +22,14 @@ import java.util.stream.Collectors;
 public class SalonController {
 
     private final SalonService salonService;
+    private final UserFeignClient userFeignClient;
+
+
 
     @PostMapping
-    public ResponseEntity<SalonDTO> createSalon(@RequestBody SalonDTO salonDTO) {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setId(1L);
+    public ResponseEntity<SalonDTO> createSalon(@RequestBody SalonDTO salonDTO,  @RequestHeader("Authorization") String token) throws Exception {
+
+        UserDTO userDTO=userFeignClient.getUserProfile(token).getBody();
 
         Salon salon = salonService.createSalon(salonDTO, userDTO);
         SalonDTO salonDTO1= SalonMapper.mapSalonToDTO(salon);
@@ -35,10 +39,11 @@ public class SalonController {
     @PutMapping("/{salonId}")
     public ResponseEntity<SalonDTO> updateSalon(
             @PathVariable("salonId") Long salonId,
-            @RequestBody SalonDTO salonDTO) throws Exception {
+            @RequestBody SalonDTO salonDTO,
+            @RequestHeader("Authorization") String token
+    ) throws Exception {
 
-        UserDTO userDTO = new UserDTO();
-        userDTO.setId(3L);
+        UserDTO userDTO=userFeignClient.getUserProfile(token).getBody();
 
         Salon salon = salonService.updateSalon(salonDTO,userDTO,salonId);
         SalonDTO salonDTO1= SalonMapper.mapSalonToDTO(salon);
@@ -74,9 +79,12 @@ public class SalonController {
     }
 
     @GetMapping("/owner")
-    public ResponseEntity<SalonDTO> getOwnerByOwnerId(){
-        UserDTO userDTO = new UserDTO();
-        userDTO.setId(1L);
+    public ResponseEntity<SalonDTO> getOwnerByOwnerId(@RequestHeader("Authorization")  String token) throws Exception {
+        UserDTO userDTO=userFeignClient.getUserProfile(token).getBody();
+
+        if(userDTO==null){
+            throw new Exception("User is not found in JWT");
+        }
 
         Salon salon = salonService.getSalonByOwnerId(userDTO.getId());
         return ResponseEntity.ok(SalonMapper.mapSalonToDTO(salon));
