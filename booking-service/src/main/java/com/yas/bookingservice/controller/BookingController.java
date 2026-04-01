@@ -7,6 +7,9 @@ import com.yas.bookingservice.mapper.BookingMapper;
 import com.yas.bookingservice.model.Booking;
 import com.yas.bookingservice.model.SalonReport;
 import com.yas.bookingservice.service.BookingService;
+import com.yas.bookingservice.service.client.SalonFeignClient;
+import com.yas.bookingservice.service.client.ServiceOfferingFeignClient;
+import com.yas.bookingservice.service.client.UserFeignClient;
 import jakarta.persistence.SecondaryTable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -27,35 +30,30 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class BookingController {
     private final BookingService bookingService;
+    private final UserFeignClient userFeignClient;
+    private final SalonFeignClient  salonFeignClient;
+    private final ServiceOfferingFeignClient  serviceOfferingFeignClient;
 
     @PostMapping
-    public ResponseEntity<Booking> createBooking(@RequestParam Long salonId, @RequestBody BookingRequest bookingRequest) throws Exception {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setId(1L);
+    public ResponseEntity<Booking> createBooking(@RequestParam Long salonId,
+                                                 @RequestBody BookingRequest bookingRequest,
+                                                 @RequestHeader("Authorization") String token) throws Exception {
+        UserDTO userDTO = userFeignClient.getUserProfile(token).getBody();
 
-        SalonDTO salonDTO = new SalonDTO();
-        salonDTO.setId(salonId);
+        SalonDTO salonDTO = salonFeignClient.getSalonById(salonId).getBody();
 
-        salonDTO.setOpeningTime(LocalTime.of(8,0));
-        salonDTO.setClosingTime(LocalTime.of(22,0));
-
-        Set<ServiceDTO>  serviceDTOS = new HashSet<>();
-        ServiceDTO serviceDTO = new ServiceDTO();
-        serviceDTO.setId(1L);
-        serviceDTO.setPrice(400);
-        serviceDTO.setDuration(45);
-        serviceDTO.setName("Hair cut");
-
-        serviceDTOS.add(serviceDTO);
+        Set<ServiceDTO>  serviceDTOS = serviceOfferingFeignClient.getServiceOfferingByIds(bookingRequest.getServiceIds()).getBody();
 
         Booking booking = bookingService.createBooking(bookingRequest, userDTO, salonDTO,serviceDTOS);
         return ResponseEntity.ok(booking);
     }
 
     @GetMapping("/customer")
-    public ResponseEntity<Set<BookingDTO>> getBookingsByCustomerId() throws Exception {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setId(1L);
+    public ResponseEntity<Set<BookingDTO>> getBookingsByCustomerId(@RequestHeader("Authorization")String token) throws Exception {
+        UserDTO userDTO = userFeignClient.getUserProfile(token).getBody();
+        if(userDTO==null){
+            throw new Exception("User not found");
+        }
 
         List<Booking> booking = bookingService.getBookingsByCustomer(userDTO.getId());
         return ResponseEntity.ok(getBookingDTOs(booking));
@@ -70,10 +68,15 @@ public class BookingController {
 
 
     @GetMapping("/salon")
-    public ResponseEntity<List<Booking>> getBookingsBySalonId() throws Exception {
+    public ResponseEntity<List<Booking>> getBookingsBySalonId(
+            @RequestHeader("Authorization") String token
+    ) throws Exception {
 
-
-        List<Booking> booking = bookingService.getBookingBySalon(1L);
+        SalonDTO salonDTO=salonFeignClient.getOwnerByOwnerId(token).getBody();
+        if(salonDTO==null){
+            throw new Exception("Owner not found");
+        }
+        List<Booking> booking = bookingService.getBookingBySalon(salonDTO.getId());
         return ResponseEntity.ok(booking);
     }
 
@@ -111,9 +114,14 @@ public class BookingController {
 
     @GetMapping("/report")
     public ResponseEntity<SalonReport> getSalonReport(
+            @RequestHeader("Authorization") String token
+    ) throws Exception {
+        SalonDTO salonDTO=salonFeignClient.getOwnerByOwnerId(token).getBody();
+        if(salonDTO==null){
+            throw new Exception("Owner not found");
+        }
 
-    ){
-        SalonReport salonReport=bookingService.getSalonReport(1L);
+        SalonReport salonReport=bookingService.getSalonReport(salonDTO.getId());
         return ResponseEntity.ok(salonReport);
     }
 }

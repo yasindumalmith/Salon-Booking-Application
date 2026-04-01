@@ -20,7 +20,7 @@
         <module name="eureka-server" />
         <module name="gateway-server" />
       </profile>
-      <profile name="Annotation profile for category-service" enabled="true">
+      <profile name="Annotation profile for booking-service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
