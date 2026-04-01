@@ -50,4 +50,13 @@ public class CategoryServiceImpl implements CategoryService {
             throw new Exception("Category not exist with id" + id);
         }
     }
+
+    @Override
+    public Category getCategoriesByIdAndSalonId(Long id, Long salonId) throws Exception {
+        Category category = categoryRepository.findByIdAndSalonId(id,salonId);
+        if(category ==null){
+            throw new Exception("Categories not found");
+        }
+        return category;
+    }
 }

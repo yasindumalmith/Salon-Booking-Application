@@ -23,11 +23,12 @@ public class CategoryController {
         return ResponseEntity.ok(getAllCategoriesBySalon);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Category> getCategoryById(
-            @PathVariable("id")  Long id
+    @GetMapping("/salon/{salonId}/category/{categoryId}")
+    public ResponseEntity<Category> getCategoryByIdAndSalon(
+            @PathVariable("salonId")  Long id,
+            @PathVariable("categoryId") Long categoryId
     ) throws Exception {
-        Category categories = categoryService.getCategoryById(id);
+        Category categories = categoryService.getCategoriesByIdAndSalonId(id,categoryId);
         return ResponseEntity.ok(categories);
     }
 
