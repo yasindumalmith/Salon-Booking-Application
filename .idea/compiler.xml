@@ -9,7 +9,6 @@
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
         </processorPath>
         <module name="user-service" />
       </profile>
@@ -20,7 +19,7 @@
         <module name="eureka-server" />
         <module name="gateway-server" />
       </profile>
-      <profile name="Annotation profile for payment-service" enabled="true">
+      <profile name="Annotation profile for service-offering" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -30,8 +29,8 @@
         <module name="salon-service" />
         <module name="payment-service" />
         <module name="category-service" />
-        <module name="notification-service" />
         <module name="service-offering" />
+        <module name="notification-service" />
         <module name="booking-service" />
       </profile>
     </annotationProcessing>

@@ -12,6 +12,7 @@ import com.yas.paymentservice.payload.dto.UserDTO;
 import com.yas.paymentservice.payload.response.PaymentLinkResponse;
 import com.yas.paymentservice.repository.PaymentRepository;
 import com.yas.paymentservice.service.PaymentService;
+import com.yas.paymentservice.service.producer.PaymentProducer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentRepository paymentRepository;
+    private final PaymentProducer paymentProducer;
 
     @Value("${stripe.api.key}")
     private String stripeAPIKey;
@@ -110,16 +112,33 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public PaymentOrder proceedPayment(PaymentOrder paymentOrder, String paymentId, String paymentLinkId) {
+    public PaymentOrder proceedPayment(PaymentOrder paymentOrder, String paymentLinkId) {
         if (paymentOrder.getStatus().equals(PaymentOrderStatus.PENDING)) {
             if (paymentOrder.getPaymentMethod().equals(PaymentMethod.STRIPE)) {
                 paymentOrder.setPaymentLinkedId(paymentLinkId);
             }
             paymentOrder.setStatus(PaymentOrderStatus.SUCCESS);
+            paymentProducer.publishPaymentSuccessEvent(paymentOrder);
         } else {
             paymentOrder.setStatus(PaymentOrderStatus.FAILED);
         }
         return paymentRepository.save(paymentOrder);
+    }
+
+    @Override
+    public void processSuccessfulPayment(String sessionId) {
+        PaymentOrder paymentOrder = paymentRepository.findByPaymentLinkedId(sessionId);
+
+        if (paymentOrder != null && paymentOrder.getStatus() == PaymentOrderStatus.PENDING) {
+
+            // 1. Database එක Update කිරීම
+            paymentOrder.setStatus(PaymentOrderStatus.SUCCESS);
+            paymentRepository.save(paymentOrder);
+
+            // 2. RabbitMQ හරහා Booking Service එකට Event එක යැවීම (අලුතින් එකතු කළ කොටස)
+            paymentProducer.publishPaymentSuccessEvent(paymentOrder);
+
+        }
     }
 }
 

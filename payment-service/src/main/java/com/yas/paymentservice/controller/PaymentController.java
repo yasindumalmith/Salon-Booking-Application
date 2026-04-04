@@ -86,15 +86,14 @@ public class PaymentController {
      */
     @PostMapping("/proceed")
     public ResponseEntity<PaymentOrder> proceedPayment(
-            @RequestParam String paymentId,
-            @RequestParam String paymentLinkId) {
+            @RequestParam String paymentId) {
 
         PaymentOrder paymentOrder = paymentService.getPaymentOrderByPaymentId(paymentId);
         if (paymentOrder == null) {
             return ResponseEntity.notFound().build();
         }
 
-        PaymentOrder updated = paymentService.proceedPayment(paymentOrder, paymentId, paymentLinkId);
+        PaymentOrder updated = paymentService.proceedPayment(paymentOrder, paymentId);
         return ResponseEntity.ok(updated);
     }
 }
