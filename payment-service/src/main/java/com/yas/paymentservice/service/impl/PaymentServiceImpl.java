@@ -12,7 +12,7 @@ import com.yas.paymentservice.payload.dto.UserDTO;
 import com.yas.paymentservice.payload.response.PaymentLinkResponse;
 import com.yas.paymentservice.repository.PaymentRepository;
 import com.yas.paymentservice.service.PaymentService;
-import com.yas.paymentservice.service.producer.PaymentProducer;
+import com.yas.paymentservice.producer.PaymentProducer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -125,20 +125,6 @@ public class PaymentServiceImpl implements PaymentService {
         return paymentRepository.save(paymentOrder);
     }
 
-    @Override
-    public void processSuccessfulPayment(String sessionId) {
-        PaymentOrder paymentOrder = paymentRepository.findByPaymentLinkedId(sessionId);
 
-        if (paymentOrder != null && paymentOrder.getStatus() == PaymentOrderStatus.PENDING) {
-
-            // 1. Database එක Update කිරීම
-            paymentOrder.setStatus(PaymentOrderStatus.SUCCESS);
-            paymentRepository.save(paymentOrder);
-
-            // 2. RabbitMQ හරහා Booking Service එකට Event එක යැවීම (අලුතින් එකතු කළ කොටස)
-            paymentProducer.publishPaymentSuccessEvent(paymentOrder);
-
-        }
-    }
 }
 

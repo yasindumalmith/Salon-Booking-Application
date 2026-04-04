@@ -1,4 +1,4 @@
-package com.yas.paymentservice.service.producer;
+package com.yas.paymentservice.producer;
 
 import com.yas.paymentservice.config.RabbitMqConfig;
 import com.yas.paymentservice.model.PaymentOrder;
