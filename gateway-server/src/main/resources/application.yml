@@ -51,7 +51,7 @@ spring:
               uri:
                 "lb://NOTIFICATION-SERVICE"
               predicates:
-                - Path=
+                - Path= /api/notification/**
 
 
   security:

@@ -39,6 +39,9 @@ public class BookingController {
                                                  @RequestBody BookingRequest bookingRequest,
                                                  @RequestHeader("Authorization") String token) throws Exception {
         UserDTO userDTO = userFeignClient.getUserProfile(token).getBody();
+        if(userDTO==null){
+            throw new Exception("User is not found");
+        }
 
         SalonDTO salonDTO = salonFeignClient.getSalonById(salonId).getBody();
 

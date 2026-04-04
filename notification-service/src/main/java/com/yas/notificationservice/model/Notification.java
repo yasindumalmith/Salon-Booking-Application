@@ -12,8 +12,6 @@ import java.time.LocalDateTime;
 
 @Entity
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class Notification {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -21,7 +19,7 @@ public class Notification {
 
     private String type;
 
-    private boolean isRead=false;
+    private boolean notificationRead= false;
     private String description;
 
     private Long userId;

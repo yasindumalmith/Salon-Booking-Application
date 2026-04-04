@@ -7,6 +7,8 @@ import com.yas.paymentservice.payload.dto.BookingDTO;
 import com.yas.paymentservice.payload.dto.UserDTO;
 import com.yas.paymentservice.payload.response.PaymentLinkResponse;
 import com.yas.paymentservice.service.PaymentService;
+import com.yas.paymentservice.service.client.BookingFeignClient;
+import com.yas.paymentservice.service.client.UserFeignClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +20,8 @@ import org.springframework.web.bind.annotation.*;
 public class PaymentController {
 
     private final PaymentService paymentService;
+    private final UserFeignClient userFeignClient;
+    private final BookingFeignClient bookingFeignClient;
 
     /**
      * Create a payment order and (optionally) generate a payment link.
@@ -25,9 +29,14 @@ public class PaymentController {
      */
     @PostMapping("/create-order")
     public ResponseEntity<PaymentLinkResponse> createOrder(
-            @RequestBody UserDTO userDTO,
-            @RequestBody BookingDTO bookingDTO,
-            @RequestParam PaymentMethod paymentMethod) throws StripeException {
+            @RequestHeader("Authorization") String token,
+            @RequestParam PaymentMethod paymentMethod) throws Exception {
+
+        UserDTO userDTO = userFeignClient.getUserProfile(token).getBody();
+        if(userDTO==null){
+            throw new Exception("Booking Id is not found");
+        }
+        BookingDTO bookingDTO = bookingFeignClient.getBookingById(userDTO.getId()).getBody();
         PaymentLinkResponse response = paymentService.createOrder(userDTO, bookingDTO, paymentMethod);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -59,14 +68,14 @@ public class PaymentController {
      * Generate a Stripe Checkout Session URL directly.
      * POST /api/payments/stripe-link?amount=1500&orderId=42
      */
-    @PostMapping("/stripe-link")
+    /*@PostMapping("/stripe-link")
     public ResponseEntity<String> createStripePaymentLink(
             @RequestBody UserDTO userDTO,
             @RequestParam Long amount,
             @RequestParam Long orderId) throws StripeException {
         String url = paymentService.createStripePaymentLink(userDTO, amount, orderId);
         return ResponseEntity.ok(url);
-    }
+    }*/
 
     /**
      * Proceed (finalise) a payment after the user returns from the payment gateway.

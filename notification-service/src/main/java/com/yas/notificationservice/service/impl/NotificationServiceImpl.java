@@ -45,8 +45,8 @@ public class NotificationServiceImpl implements NotificationService {
         if(notification==null){
             throw new Exception("Notification not found");
         }
-        if(!notification.isRead()){
-            notification.setRead(true);
+        if(!notification.isNotificationRead()){
+            notification.setNotificationRead(true);
         }
         return notificationRepository.save(notification);
     }

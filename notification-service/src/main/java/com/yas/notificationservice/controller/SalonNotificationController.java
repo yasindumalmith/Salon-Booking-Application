@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/notification/salon-woner")
+@RequestMapping("/api/notification/salon-owner")
 @RequiredArgsConstructor
 public class SalonNotificationController {
 

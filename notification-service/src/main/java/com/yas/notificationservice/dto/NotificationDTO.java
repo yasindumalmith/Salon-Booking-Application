@@ -11,7 +11,7 @@ public class NotificationDTO {
 
     private String type;
 
-    private boolean isRead=false;
+    private boolean notificationRead;
     private String description;
 
     private Long userId;

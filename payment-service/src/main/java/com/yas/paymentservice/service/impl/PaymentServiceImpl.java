@@ -33,19 +33,23 @@ public class PaymentServiceImpl implements PaymentService {
     public PaymentLinkResponse createOrder(UserDTO userDTO, BookingDTO bookingDTO, PaymentMethod paymentMethod) throws StripeException {
         Long amount = (long) bookingDTO.getTotalPrice();
 
+        PaymentLinkResponse paymentLinkResponse = new PaymentLinkResponse();
+
+        if (paymentMethod.equals(PaymentMethod.STRIPE)) {
+            paymentLinkResponse= createStripePaymentLink(userDTO, amount, bookingDTO.getId());
+        }
+
         PaymentOrder paymentOrder = new PaymentOrder();
         paymentOrder.setAmount(amount);
         paymentOrder.setPaymentMethod(paymentMethod);
         paymentOrder.setBookId(bookingDTO.getId());
         paymentOrder.setSalonId(bookingDTO.getSalonId());
-        PaymentOrder savedOrder = paymentRepository.save(paymentOrder);
+        paymentOrder.setPaymentLinkedId(paymentLinkResponse.getPaymentLinkedId());
+        paymentOrder.setUserId(userDTO.getId());
+        paymentOrder.setStatus(PaymentOrderStatus.PENDING);
+        paymentRepository.save(paymentOrder);
 
-        PaymentLinkResponse paymentLinkResponse = new PaymentLinkResponse();
 
-        if (paymentMethod.equals(PaymentMethod.STRIPE)) {
-            String paymentUrl = createStripePaymentLink(userDTO, savedOrder.getAmount(), savedOrder.getId());
-            paymentLinkResponse.setPayment_link_url(paymentUrl);
-        }
         return paymentLinkResponse;
     }
 
@@ -65,8 +69,8 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public String createStripePaymentLink(UserDTO userDTO, Long amount, Long orderId) throws StripeException {
-        Stripe.apiKey = stripeAPIKey;
+    public PaymentLinkResponse createStripePaymentLink(UserDTO userDTO, Long amount, Long orderId) throws StripeException {
+        Stripe.apiKey = stripeAPISecret;
 
         SessionCreateParams params = SessionCreateParams.builder()
                 // Accept card payments
@@ -98,7 +102,11 @@ public class PaymentServiceImpl implements PaymentService {
 
         // 4. Create the session and return the URL
         Session session = Session.create(params);
-        return session.getUrl();
+        PaymentLinkResponse paymentLinkResponse = new PaymentLinkResponse();
+        paymentLinkResponse.setPayment_link_url(session.getUrl());
+        paymentLinkResponse.setPaymentLinkedId(session.getId());
+
+        return paymentLinkResponse;
     }
 
     @Override

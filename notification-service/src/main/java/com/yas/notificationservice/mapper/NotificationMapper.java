@@ -10,7 +10,7 @@ public class NotificationMapper {
         notificationDTO.setId(notification.getId());
         notificationDTO.setBookingId(bookingDTO.getId());
         notificationDTO.setUserId(notification.getUserId());
-        notificationDTO.setRead(notification.isRead());
+        notificationDTO.setNotificationRead(notification.isNotificationRead());
         notificationDTO.setDescription(notification.getDescription());
         notificationDTO.setType(notification.getType());
         notificationDTO.setCreatedAt(notification.getCreatedAt());

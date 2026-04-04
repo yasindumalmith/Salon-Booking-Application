@@ -11,6 +11,6 @@ public interface PaymentService {
     PaymentLinkResponse createOrder(UserDTO userDTO, BookingDTO bookingDTO, PaymentMethod paymentMethod) throws StripeException;
     PaymentOrder getPaymentOrderById(Long id) throws Exception;
     PaymentOrder getPaymentOrderByPaymentId(String paymentId);
-    String createStripePaymentLink(UserDTO userDTO, Long amount, Long orderId) throws StripeException;
+    PaymentLinkResponse createStripePaymentLink(UserDTO userDTO, Long amount, Long orderId) throws StripeException;
     PaymentOrder proceedPayment(PaymentOrder paymentOrder, String paymentId, String paymentLinkId);
 }

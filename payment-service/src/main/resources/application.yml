@@ -17,8 +17,8 @@ server:
 
 stripe:
   api:
-    key: "stripe api key"
-    secret: "secret key"
+    key: ${STRIPE_PUBLISHABLE_KEY}
+    secret: ${STRIPE_SECRET_KEY}
 
 eureka:
   instance:

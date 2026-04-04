@@ -1,6 +1,6 @@
-package com.yas.notificationservice.service.client;
+package com.yas.paymentservice.service.client;
 
-import com.yas.notificationservice.dto.BookingDTO;
+import com.yas.paymentservice.payload.dto.BookingDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
