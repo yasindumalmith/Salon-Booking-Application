@@ -6,6 +6,7 @@ import com.yas.bookingservice.dto.BookingRequest;
 import com.yas.bookingservice.dto.SalonDTO;
 import com.yas.bookingservice.dto.ServiceDTO;
 import com.yas.bookingservice.dto.UserDTO;
+import com.yas.bookingservice.metrics.BookingMetrics;
 import com.yas.bookingservice.model.Booking;
 import com.yas.bookingservice.model.SalonReport;
 import com.yas.bookingservice.repository.BookingRepository;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
+    private final BookingMetrics bookingMetrics;
 
     @Override
     public Booking createBooking(BookingRequest booking, UserDTO user, SalonDTO salon, Set<ServiceDTO> services) throws Exception {
@@ -52,8 +54,13 @@ public class BookingServiceImpl implements BookingService {
             bookingEntity.setStartTime(bookingStartTime);
             bookingEntity.setEndTime(bookingEndTime);
             bookingEntity.setTotalPrice(totalPrice);
-            return bookingRepository.save(bookingEntity);
+            Booking saved = bookingRepository.save(bookingEntity);
+            // ── Business metric: booking successfully created ──────────────
+            bookingMetrics.incrementBookingSuccess();
+            return saved;
         }
+        // ── Business metric: booking failed (slot unavailable) ────────────
+        bookingMetrics.incrementBookingFailed();
         throw new Exception("Cannot create booking try with different time");
 
 
@@ -77,9 +84,13 @@ public class BookingServiceImpl implements BookingService {
             LocalDateTime existingBookingEndTime = existingBooking.getEndTime();
 
             if(bookingStartTime.isBefore(existingBookingEndTime) && bookingEndTime.isAfter(existingBookingStartTime)){
+                // ── Business metric: slot conflict ─────────────────────────
+                bookingMetrics.incrementBookingFailed();
                 throw new Exception("This time slot is already Booked");
             }
             if (bookingStartTime.isEqual(existingBookingStartTime) || bookingEndTime.isEqual(existingBookingEndTime)) {
+                // ── Business metric: slot conflict ─────────────────────────
+                bookingMetrics.incrementBookingFailed();
                 throw new Exception("This time slot is already Booked choose different time");
             }
         }
