@@ -1,0 +1,21 @@
+spring:
+  config:
+    activate:
+      on-profile: dev
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  datasource:
+    url: jdbc:mysql://localhost:3306/salondb?createDatabaseIfNotExist=true
+    username: root
+    password: yasindusql
+    driver-class-name: com.mysql.cj.jdbc.Driver
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: "http://localhost:8761/eureka/"
