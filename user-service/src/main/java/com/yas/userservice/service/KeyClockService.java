@@ -1,8 +1,7 @@
 package com.yas.userservice.service;
 
+
 import com.yas.userservice.payload.response.dto.*;
-import com.yas.userservice.payload.response.dto.KeyClockUserDTO;
-import com.yas.userservice.payload.response.dto.TokenResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -16,18 +15,18 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class KeyClockService {
-    private static final String KEYCLOCK_BASE_URL = "http://localhost:8001";
+    private static final String KEYCLOCK_BASE_URL = "http://keycloak-service:8080";
     private static final String KEYCLOCK_ADMIN_API = KEYCLOCK_BASE_URL + "/admin/realms/master/users";
 
     private static final String TOKEN_URL= KEYCLOCK_BASE_URL + "/realms/master/protocol/openid-connect/token";
 
     private static final String CLIENT_ID="salon-booking-client";
-    private static final String CLIENT_SECRET="ikEImFFivVIpFcuIjM6ZzwHKmsiRT270";
+    private static final String CLIENT_SECRET="W3G7QYiUk3bf2etTWrRSZNeHOTi8ukpM";
     private static final String GRANT_TYPE="password";
     private static final String scope ="openid email profile";
     private static final String username="yasindu";
     private static final String password="123456";
-    private static final String clientId="d7c3feb3-146e-4362-b97d-8c3dfd3175a6";
+    private static final String clientId="2d8486ca-6f9f-4714-a8ce-7b35eb7621a3";
 
     private final RestTemplate restTemplate;
 
@@ -40,7 +39,7 @@ public class KeyClockService {
         credential.setValue(signupDTO.getPassword());
         credential.setTemporary(false);
 
-        UserRequest  userRequest=new UserRequest();
+        UserRequest userRequest=new UserRequest();
         userRequest.setUsername(signupDTO.getUsername());
         userRequest.setEmail(signupDTO.getEmail());
         userRequest.setFirstName(signupDTO.getFirstName());
