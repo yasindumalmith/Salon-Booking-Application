@@ -2,6 +2,9 @@ spring:
   application:
     name: gateway-server
 
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+
   cloud:
     gateway:
       server:
@@ -13,43 +16,43 @@ spring:
           routes:
             - id: BOOKING-SERVICE
               uri:
-                "lb://BOOKING-SERVICE"
+                "lb://booking-service"   #change this to block-letter with eureka
               predicates:
                 - Path= /api/bookings/**
 
             - id: CATEGORY-SERVICE
               uri:
-                "lb://CATEGORY-SERVICE"
+                "lb://category-service"
               predicates:
                 - Path= /api/categories/**
 
             - id: PAYMENT-SERVICE
               uri:
-                "lb://PAYMENT-SERVICE"
+                "lb://payment-service"
               predicates:
                 - Path= /api/payments/**
 
             - id: SALON-SERVICE
               uri:
-                "lb://SALON-SERVICE"
+                "lb://salon-service"
               predicates:
                 - Path= /api/salons/**, /salons/**, /api/admin/salons/**
 
             - id: SERVICE-OFFERING
               uri:
-                "lb://SERVICE-OFFERING"
+                "lb://service-offering"
               predicates:
                 - Path= /api/service-offering/**
 
             - id: USER-SERVICE
               uri:
-                "lb://USER-SERVICE"
+                "lb://user-service"
               predicates:
                 - Path= /api/users/**, /auth/**, /api/admin/users/**, /users/**
 
             - id: NOTIFICATION-SERVICE
               uri:
-                "lb://NOTIFICATION-SERVICE"
+                "lb://notification-service"
               predicates:
                 - Path= /api/notification/**
 
@@ -63,11 +66,3 @@ spring:
 server:
   port: 8000
 
-eureka:
-  instance:
-    prefer-ip-address: true
-  client:
-    fetch-registry: true
-    register-with-eureka: true
-    service-url:
-      defaultZone: "http://localhost:8761/eureka/"
