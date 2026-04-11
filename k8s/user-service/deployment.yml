@@ -24,6 +24,7 @@ spec:
       containers:
         - name: user-service
           image: yasindumalmith/user-service:v1
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
 
