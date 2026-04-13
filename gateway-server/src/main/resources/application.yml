@@ -5,63 +5,9 @@ spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
 
-  cloud:
-    gateway:
-      server:
-        webflux:
-          discovery:
-            locator:
-              enabled: true
-
-          routes:
-            - id: BOOKING-SERVICE
-              uri:
-                "lb://booking-service"   #change this to block-letter with eureka
-              predicates:
-                - Path= /api/bookings/**
-
-            - id: CATEGORY-SERVICE
-              uri:
-                "lb://category-service"
-              predicates:
-                - Path= /api/categories/**
-
-            - id: PAYMENT-SERVICE
-              uri:
-                "lb://payment-service"
-              predicates:
-                - Path= /api/payments/**
-
-            - id: SALON-SERVICE
-              uri:
-                "lb://salon-service"
-              predicates:
-                - Path= /api/salons/**, /salons/**, /api/admin/salons/**
-
-            - id: SERVICE-OFFERING
-              uri:
-                "lb://service-offering"
-              predicates:
-                - Path= /api/service-offering/**
-
-            - id: USER-SERVICE
-              uri:
-                "lb://user-service"
-              predicates:
-                - Path= /api/users/**, /auth/**, /api/admin/users/**, /users/**
-
-            - id: NOTIFICATION-SERVICE
-              uri:
-                "lb://notification-service"
-              predicates:
-                - Path= /api/notification/**
 
 
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: http://localhost:8001/realms/master
+
 
 server:
   port: 8000

@@ -11,3 +11,7 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME:root}
     password: ${SPRING_DATASOURCE_PASSWORD:yasindusql}
     driver-class-name: com.mysql.cj.jdbc.Driver
+
+eureka:
+  client:
+    enabled: false

@@ -13,6 +13,10 @@ spring:
     password: ${SPRING_DATASOURCE_PASSWORD:yasindusql}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+eureka:
+  client:
+    enabled: false
+
 management:
   endpoints:
     web:

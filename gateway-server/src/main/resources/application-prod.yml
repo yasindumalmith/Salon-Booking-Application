@@ -2,8 +2,69 @@ spring:
   config:
     activate:
       on-profile: prod
+
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+          discovery:
+            locator:
+              enabled: true
+
+          routes:
+            - id: BOOKING-SERVICE
+              uri:
+                "http://booking-service"   #change this to block-letter with eureka
+              predicates:
+                - Path=/api/bookings/**
+
+            - id: CATEGORY-SERVICE
+              uri:
+                "http://category-service"
+              predicates:
+                - Path=/api/categories/**
+
+            - id: PAYMENT-SERVICE
+              uri:
+                "http://payment-service"
+              predicates:
+                - Path=/api/payments/**
+
+            - id: SALON-SERVICE
+              uri:
+                "http://salon-service"
+              predicates:
+                - Path=/api/salons/**, /salons/**, /api/admin/salons/**
+
+            - id: SERVICE-OFFERING
+              uri:
+                "http://service-offering"
+              predicates:
+                - Path=/api/service-offering/**
+
+            - id: USER-SERVICE
+              uri:
+                "http://user-service"
+              predicates:
+                - Path=/api/users/**, /auth/**, /api/admin/users/**, /users/**
+
+            - id: NOTIFICATION-SERVICE
+              uri:
+                "http://notification-service"
+              predicates:
+                - Path=/api/notification/**
+
+
+
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://keycloak-service:8080/realms/master
+          issuer-uri: http://auth.salonapp.local:8080/realms/master
+          jwk-set-uri: http://keycloak-service:8080/realms/master/protocol/openid-connect/certs
+
+
+eureka:
+  client:
+    enabled: false

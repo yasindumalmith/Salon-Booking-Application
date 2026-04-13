@@ -3,6 +3,65 @@ spring:
     activate:
       on-profile: dev
 
+  cloud:
+    gateway:
+      server:
+        webflux:
+          discovery:
+            locator:
+              enabled: true
+
+          routes:
+            - id: BOOKING-SERVICE
+              uri:
+                "lb://BOOKING-SERVICE"   #change this to block-letter with eureka
+              predicates:
+                - Path= /api/bookings/**
+
+            - id: CATEGORY-SERVICE
+              uri:
+                "lb://CATEGORY-SERVICE"
+              predicates:
+                - Path= /api/categories/**
+
+            - id: PAYMENT-SERVICE
+              uri:
+                "lb://PAYMENT-SERVICE"
+              predicates:
+                - Path= /api/payments/**
+
+            - id: SALON-SERVICE
+              uri:
+                "lb://SALON-SERVICE"
+              predicates:
+                - Path= /api/salons/**, /salons/**, /api/admin/salons/**
+
+            - id: SERVICE-OFFERING
+              uri:
+                "lb://SERVICE-OFFERING"
+              predicates:
+                - Path= /api/service-offering/**
+
+            - id: USER-SERVICE
+              uri:
+                "lb://USER-SERVICE"
+              predicates:
+                - Path= /api/users/**, /auth/**, /api/admin/users/**, /users/**
+
+            - id: NOTIFICATION-SERVICE
+              uri:
+                "lb://NOTIFICATION-SERVICE"
+              predicates:
+                - Path= /api/notification/**
+
+
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8001/realms/master
+
 eureka:
   instance:
     prefer-ip-address: true

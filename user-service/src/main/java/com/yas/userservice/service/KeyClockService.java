@@ -21,12 +21,12 @@ public class KeyClockService {
     private static final String TOKEN_URL= KEYCLOCK_BASE_URL + "/realms/master/protocol/openid-connect/token";
 
     private static final String CLIENT_ID="salon-booking-client";
-    private static final String CLIENT_SECRET="W3G7QYiUk3bf2etTWrRSZNeHOTi8ukpM";
+    private static final String CLIENT_SECRET="TL0wWNRxHUjUPeuo0qTqFY7p6f1fhFj8";
     private static final String GRANT_TYPE="password";
     private static final String scope ="openid email profile";
     private static final String username="yasindu";
     private static final String password="123456";
-    private static final String clientId="2d8486ca-6f9f-4714-a8ce-7b35eb7621a3";
+    private static final String clientId="0a0163d1-6957-4173-b11f-1923835dbed8";
 
     private final RestTemplate restTemplate;
 
