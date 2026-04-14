@@ -1,0 +1,106 @@
+{{- if .Values.userService.enabled }}
+# ──────────────────────────────────────────────────────────────
+# User Service — ConfigMap
+# ──────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-service-config
+  labels:
+    app: user-service
+    {{- include "salon-booking.labels" . | nindent 4 }}
+data:
+  SPRING_PROFILES_ACTIVE: {{ .Values.global.springProfile | quote }}
+---
+# ──────────────────────────────────────────────────────────────
+# User Service — Secret
+# ──────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Secret
+metadata:
+  name: user-service-secret
+  labels:
+    app: user-service
+    {{- include "salon-booking.labels" . | nindent 4 }}
+type: Opaque
+data:
+  SPRING_DATASOURCE_USERNAME: {{ .Values.userService.secrets.datasourceUsername }}
+  SPRING_DATASOURCE_PASSWORD: {{ .Values.userService.secrets.datasourcePassword }}
+---
+# ──────────────────────────────────────────────────────────────
+# User Service — Deployment
+# ──────────────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+  labels:
+    app: user-service
+    {{- include "salon-booking.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.userService.replicas }}
+  selector:
+    matchLabels:
+      app: user-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      nodeSelector:
+        node-role: {{ .Values.userService.nodeRole }}
+      containers:
+        - name: user-service
+          image: "{{ .Values.global.imageRegistry }}{{ .Values.userService.image.repository }}:{{ .Values.userService.image.tag }}"
+          imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.userService.containerPort }}
+          envFrom:
+            - configMapRef:
+                name: user-service-config
+            - secretRef:
+                name: user-service-secret
+          resources:
+            requests:
+              memory: {{ .Values.userService.resources.requests.memory | quote }}
+              cpu: {{ .Values.userService.resources.requests.cpu | quote }}
+            limits:
+              memory: {{ .Values.userService.resources.limits.memory | quote }}
+              cpu: {{ .Values.userService.resources.limits.cpu | quote }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.userService.probes.readiness.path }}
+              port: {{ .Values.userService.containerPort }}
+            initialDelaySeconds: {{ .Values.userService.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.userService.probes.readiness.periodSeconds }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.userService.probes.liveness.path }}
+              port: {{ .Values.userService.containerPort }}
+            initialDelaySeconds: {{ .Values.userService.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.userService.probes.liveness.periodSeconds }}
+---
+# ──────────────────────────────────────────────────────────────
+# User Service — Service
+# ──────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+  labels:
+    app: user-service
+    {{- include "salon-booking.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.userService.service.type }}
+  selector:
+    app: user-service
+  ports:
+    - protocol: TCP
+      port: {{ .Values.userService.service.port }}
+      targetPort: {{ .Values.userService.containerPort }}
+{{- end }}

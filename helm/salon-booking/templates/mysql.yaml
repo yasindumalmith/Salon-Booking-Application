@@ -1,0 +1,86 @@
+{{- if .Values.mysql.enabled }}
+# ──────────────────────────────────────────────────────────────
+# MySQL (user-service DB) — Secret
+# ──────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-secret
+  labels:
+    app: mysql
+    {{- include "salon-booking.labels" . | nindent 4 }}
+type: Opaque
+data:
+  MYSQL_ROOT_PASSWORD: {{ .Values.mysql.secrets.rootPassword }}
+---
+# ──────────────────────────────────────────────────────────────
+# MySQL (user-service DB) — Headless Service
+# ──────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+  labels:
+    app: mysql
+    {{- include "salon-booking.labels" . | nindent 4 }}
+spec:
+  clusterIP: None
+  selector:
+    app: mysql
+  ports:
+    - port: 3306
+      targetPort: 3306
+---
+# ──────────────────────────────────────────────────────────────
+# MySQL (user-service DB) — StatefulSet
+# ──────────────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+  labels:
+    app: mysql
+    {{- include "salon-booking.labels" . | nindent 4 }}
+spec:
+  serviceName: mysql
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      nodeSelector:
+        node-role: {{ .Values.mysql.nodeRole }}
+      containers:
+        - name: mysql
+          image: "{{ .Values.mysql.image.repository }}:{{ .Values.mysql.image.tag }}"
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_ROOT_PASSWORD
+          volumeMounts:
+            - name: mysql-storage
+              mountPath: /var/lib/mysql
+          resources:
+            requests:
+              memory: {{ .Values.mysql.resources.requests.memory | quote }}
+              cpu: {{ .Values.mysql.resources.requests.cpu | quote }}
+            limits:
+              memory: {{ .Values.mysql.resources.limits.memory | quote }}
+              cpu: {{ .Values.mysql.resources.limits.cpu | quote }}
+  volumeClaimTemplates:
+    - metadata:
+        name: mysql-storage
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: {{ .Values.mysql.storage }}
+{{- end }}
