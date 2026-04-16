@@ -100,7 +100,8 @@ spec:
   selector:
     app: salon-service
   ports:
-    - protocol: TCP
+    - name: http
+      protocol: TCP
       port: {{ .Values.salonService.service.port }}
       targetPort: {{ .Values.salonService.containerPort }}
 {{- end }}

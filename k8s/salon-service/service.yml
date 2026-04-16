@@ -6,7 +6,8 @@ spec:
   selector:
     app: salon-service
   ports:
-    - protocol: TCP
+    - name: http
+      protocol: TCP
       port: 80
       targetPort: 8081
   type: ClusterIP
