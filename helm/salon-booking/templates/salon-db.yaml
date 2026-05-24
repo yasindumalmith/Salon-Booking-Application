@@ -1,0 +1,86 @@
+{{- if .Values.salonDb.enabled }}
+# ──────────────────────────────────────────────────────────────
+# Salon DB (MySQL for salon-service) — Secret
+# ──────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Secret
+metadata:
+  name: salon-db-secret
+  labels:
+    app: salon-db
+    {{- include "salon-booking.labels" . | nindent 4 }}
+type: Opaque
+data:
+  MYSQL_ROOT_PASSWORD: {{ .Values.salonDb.secrets.rootPassword }}
+---
+# ──────────────────────────────────────────────────────────────
+# Salon DB — Headless Service
+# ──────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: salon-db
+  labels:
+    app: salon-db
+    {{- include "salon-booking.labels" . | nindent 4 }}
+spec:
+  clusterIP: None
+  selector:
+    app: salon-db
+  ports:
+    - port: 3306
+      targetPort: 3306
+---
+# ──────────────────────────────────────────────────────────────
+# Salon DB — StatefulSet
+# ──────────────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: salon-db
+  labels:
+    app: salon-db
+    {{- include "salon-booking.labels" . | nindent 4 }}
+spec:
+  serviceName: salon-db
+  replicas: 1
+  selector:
+    matchLabels:
+      app: salon-db
+  template:
+    metadata:
+      labels:
+        app: salon-db
+    spec:
+      nodeSelector:
+        node-role: {{ .Values.salonDb.nodeRole }}
+      containers:
+        - name: salon-db
+          image: "{{ .Values.salonDb.image.repository }}:{{ .Values.salonDb.image.tag }}"
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: salon-db-secret
+                  key: MYSQL_ROOT_PASSWORD
+          volumeMounts:
+            - name: salon-db-storage
+              mountPath: /var/lib/mysql
+          resources:
+            requests:
+              memory: {{ .Values.salonDb.resources.requests.memory | quote }}
+              cpu: {{ .Values.salonDb.resources.requests.cpu | quote }}
+            limits:
+              memory: {{ .Values.salonDb.resources.limits.memory | quote }}
+              cpu: {{ .Values.salonDb.resources.limits.cpu | quote }}
+  volumeClaimTemplates:
+    - metadata:
+        name: salon-db-storage
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: {{ .Values.salonDb.storage }}
+{{- end }}

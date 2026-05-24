@@ -1,0 +1,107 @@
+{{- if .Values.salonService.enabled }}
+# ──────────────────────────────────────────────────────────────
+# Salon Service — ConfigMap
+# ──────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: salon-service-config
+  labels:
+    app: salon-service
+    {{- include "salon-booking.labels" . | nindent 4 }}
+data:
+  SPRING_PROFILES_ACTIVE: {{ .Values.global.springProfile | quote }}
+---
+# ──────────────────────────────────────────────────────────────
+# Salon Service — Secret
+# ──────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Secret
+metadata:
+  name: salon-service-secret
+  labels:
+    app: salon-service
+    {{- include "salon-booking.labels" . | nindent 4 }}
+type: Opaque
+data:
+  SPRING_DATASOURCE_USERNAME: {{ .Values.salonService.secrets.datasourceUsername }}
+  SPRING_DATASOURCE_PASSWORD: {{ .Values.salonService.secrets.datasourcePassword }}
+---
+# ──────────────────────────────────────────────────────────────
+# Salon Service — Deployment
+# ──────────────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: salon-service
+  labels:
+    app: salon-service
+    {{- include "salon-booking.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.salonService.replicas }}
+  selector:
+    matchLabels:
+      app: salon-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: salon-service
+    spec:
+      nodeSelector:
+        node-role: {{ .Values.salonService.nodeRole }}
+      containers:
+        - name: salon-service
+          image: "{{ .Values.global.imageRegistry }}{{ .Values.salonService.image.repository }}:{{ .Values.salonService.image.tag }}"
+          imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.salonService.containerPort }}
+          envFrom:
+            - configMapRef:
+                name: salon-service-config
+            - secretRef:
+                name: salon-service-secret
+          resources:
+            requests:
+              memory: {{ .Values.salonService.resources.requests.memory | quote }}
+              cpu: {{ .Values.salonService.resources.requests.cpu | quote }}
+            limits:
+              memory: {{ .Values.salonService.resources.limits.memory | quote }}
+              cpu: {{ .Values.salonService.resources.limits.cpu | quote }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.salonService.probes.readiness.path }}
+              port: {{ .Values.salonService.containerPort }}
+            initialDelaySeconds: {{ .Values.salonService.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.salonService.probes.readiness.periodSeconds }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.salonService.probes.liveness.path }}
+              port: {{ .Values.salonService.containerPort }}
+            initialDelaySeconds: {{ .Values.salonService.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.salonService.probes.liveness.periodSeconds }}
+---
+# ──────────────────────────────────────────────────────────────
+# Salon Service — Service
+# ──────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: salon-service
+  labels:
+    app: salon-service
+    {{- include "salon-booking.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.salonService.service.type }}
+  selector:
+    app: salon-service
+  ports:
+    - name: http
+      protocol: TCP
+      port: {{ .Values.salonService.service.port }}
+      targetPort: {{ .Values.salonService.containerPort }}
+{{- end }}

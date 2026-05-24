@@ -1,18 +1,21 @@
+
+
+
 spring:
-  application:
-    name: service-offering
+  config:
+    activate:
+      on-profile: dev
 
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
   datasource:
-    url: jdbc:mysql://localhost:3306/servicesdb?createDatabaseIfNotExist=true
+    url: jdbc:mysql://localhost:3306/userdb?createDatabaseIfNotExist=true
     username: root
     password: yasindusql
     driver-class-name: com.mysql.cj.jdbc.Driver
-server:
-  port: 8083
+
 
 eureka:
   instance:

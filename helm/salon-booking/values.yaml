@@ -1,0 +1,183 @@
+# ============================================================
+# Salon Booking - Helm Values
+# ============================================================
+# Edit values here to customise the deployment.
+# Override at deploy time using:
+#   helm upgrade --install ... -f custom-values.yaml
+#   or --set key=value
+# ============================================================
+
+# -------------------------
+# Global settings
+# -------------------------
+global:
+  imageRegistry: ""       # e.g. "registry.example.com/" — leave empty for Docker Hub
+  imagePullPolicy: Always
+  springProfile: prod
+
+# -------------------------
+# User Service
+# -------------------------
+userService:
+  enabled: true
+  image:
+    repository: yasindumalmith/user-service
+    tag: "v1"
+  replicas: 3
+  containerPort: 8080
+  nodeRole: user-worker
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  probes:
+    readiness:
+      path: /actuator/health
+      initialDelaySeconds: 20
+      periodSeconds: 10
+    liveness:
+      path: /actuator/health
+      initialDelaySeconds: 30
+      periodSeconds: 15
+  service:
+    type: ClusterIP
+    port: 80
+  # Secrets (base64-encoded)
+  secrets:
+    datasourceUsername: "cm9vdA=="          # root
+    datasourcePassword: "eWFzaW5kdXNxbA=="  # yasindusql
+
+# -------------------------
+# Salon Service
+# -------------------------
+salonService:
+  enabled: true
+  image:
+    repository: yasindumalmith/salon-service
+    tag: "v1"
+  replicas: 3
+  containerPort: 8081
+  nodeRole: salon-worker
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  probes:
+    readiness:
+      path: /actuator/health
+      initialDelaySeconds: 20
+      periodSeconds: 10
+    liveness:
+      path: /actuator/health
+      initialDelaySeconds: 30
+      periodSeconds: 15
+  service:
+    type: ClusterIP
+    port: 80
+  # Secrets (base64-encoded)
+  secrets:
+    datasourceUsername: "cm9vdA=="          # root
+    datasourcePassword: "eWFzaW5kdXNxbA=="  # yasindusql
+
+# -------------------------
+# API Gateway
+# -------------------------
+gateway:
+  enabled: true
+  image:
+    repository: yasindumalmith/gateway-server
+    tag: "v1"
+  replicas: 1
+  containerPort: 8000
+  nodeRole: network-worker
+  service:
+    type: NodePort
+    port: 80
+    nodePort: 30080
+  env:
+    userServiceUrl: "http://user-service:80"
+    salonServiceUrl: "http://salon-service:80"
+    keycloakUrl: "http://keycloak-service:8080"
+
+# -------------------------
+# MySQL (shared — for user-service)
+# -------------------------
+mysql:
+  enabled: true
+  image:
+    repository: mysql
+    tag: "8.0"
+  nodeRole: user-worker
+  storage: 2Gi
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+  # Secrets (base64-encoded)
+  secrets:
+    rootPassword: "eWFzaW5kdXNxbA=="    # yasindusql
+
+# -------------------------
+# Salon DB (MySQL for salon-service)
+# -------------------------
+salonDb:
+  enabled: true
+  image:
+    repository: mysql
+    tag: "8.0"
+  nodeRole: salon-worker
+  storage: 2Gi
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+  # Secrets (base64-encoded)
+  secrets:
+    rootPassword: "eWFzaW5kdXNxbA=="    # yasindusql
+
+# -------------------------
+# Keycloak
+# -------------------------
+keycloak:
+  enabled: true
+  image:
+    repository: quay.io/keycloak/keycloak
+    tag: "21.0.1"
+  nodeRole: user-worker
+  admin:
+    username: admin
+    password: admin
+  hostname: auth.salonapp.local
+  hostnamePort: "8080"
+  # PostgreSQL backend for Keycloak
+  db:
+    image:
+      repository: postgres
+      tag: "15"
+    nodeRole: user-worker
+    name: keycloak
+    user: keycloak
+    password: password123
+    storage: 2Gi
+
+# -------------------------
+# Ingress
+# -------------------------
+ingress:
+  enabled: true
+  className: nginx
+  apiHost: api.salonapp.local
+  authHost: auth.salonapp.local
+  corsEnabled: "true"

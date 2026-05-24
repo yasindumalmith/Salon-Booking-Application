@@ -1,0 +1,73 @@
+{{- if .Values.gateway.enabled }}
+# ──────────────────────────────────────────────────────────────
+# API Gateway — ConfigMap
+# ──────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gateway-server-config
+  labels:
+    app: api-gateway
+    {{- include "salon-booking.labels" . | nindent 4 }}
+data:
+  SPRING_PROFILES_ACTIVE: {{ .Values.global.springProfile | quote }}
+---
+# ──────────────────────────────────────────────────────────────
+# API Gateway — Deployment
+# ──────────────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  labels:
+    app: api-gateway
+    {{- include "salon-booking.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.gateway.replicas }}
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      nodeSelector:
+        node-role: {{ .Values.gateway.nodeRole }}
+      containers:
+        - name: api-gateway
+          image: "{{ .Values.global.imageRegistry }}{{ .Values.gateway.image.repository }}:{{ .Values.gateway.image.tag }}"
+          imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.gateway.containerPort }}
+          envFrom:
+            - configMapRef:
+                name: gateway-server-config
+          env:
+            - name: USER_SERVICE_URL
+              value: {{ .Values.gateway.env.userServiceUrl | quote }}
+            - name: SALON_SERVICE_URL
+              value: {{ .Values.gateway.env.salonServiceUrl | quote }}
+            - name: KEYCLOAK_URL
+              value: {{ .Values.gateway.env.keycloakUrl | quote }}
+---
+# ──────────────────────────────────────────────────────────────
+# API Gateway — Service
+# ──────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-service
+  labels:
+    app: api-gateway
+    {{- include "salon-booking.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.gateway.service.type }}
+  selector:
+    app: api-gateway
+  ports:
+    - protocol: TCP
+      port: {{ .Values.gateway.service.port }}
+      targetPort: {{ .Values.gateway.containerPort }}
+      nodePort: {{ .Values.gateway.service.nodePort }}
+{{- end }}

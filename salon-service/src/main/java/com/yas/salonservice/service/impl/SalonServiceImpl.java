@@ -2,6 +2,7 @@ package com.yas.salonservice.service.impl;
 
 import com.yas.salonservice.dto.SalonDTO;
 import com.yas.salonservice.dto.UserDTO;
+import com.yas.salonservice.metrics.SalonMetrics;
 import com.yas.salonservice.model.Salon;
 import com.yas.salonservice.repository.SalonRepository;
 import com.yas.salonservice.service.SalonService;
@@ -15,6 +16,7 @@ import java.util.List;
 public class SalonServiceImpl implements SalonService {
 
     private final SalonRepository salonRepository;
+    private final SalonMetrics salonMetrics;
     @Override
     public Salon createSalon(SalonDTO salon, UserDTO user) {
         Salon  salon1 = new Salon();
@@ -28,8 +30,10 @@ public class SalonServiceImpl implements SalonService {
         salon1.setClosingTime(salon.getClosingTime());
         salon1.setPhoneNumber(salon.getPhoneNumber());
 
-        return salonRepository.save(salon1);
-
+        Salon saved = salonRepository.save(salon1);
+        // ── Business metric: salon successfully created ──────────────────
+        salonMetrics.incrementSalonCreateSuccess();
+        return saved;
     }
 
     @Override
@@ -46,11 +50,14 @@ public class SalonServiceImpl implements SalonService {
             existingSalon.setOpeningTime(salon.getOpeningTime());
             existingSalon.setClosingTime(salon.getClosingTime());
             existingSalon.setPhoneNumber(salon.getPhoneNumber());
-            return salonRepository.save(existingSalon);
-
+            Salon updated = salonRepository.save(existingSalon);
+            // ── Business metric: salon successfully updated ──────────────
+            salonMetrics.incrementSalonUpdateSuccess();
+            return updated;
         }
+        // ── Business metric: salon update failed (not found/unauthorised) ─
+        salonMetrics.incrementSalonUpdateFailed();
         throw new Exception("salon not exist");
-
     }
 
     @Override

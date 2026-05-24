@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      nodeSelector:
+        node-role: network-worker
+      containers:
+        - name: api-gateway
+          image: yasindumalmith/gateway-server:v1
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: gateway-server-config
+          env:
+            - name: USER_SERVICE_URL
+              value: "http://user-service:80"
+            - name: SALON_SERVICE_URL
+              value: "http://salon-service:80"
+            - name: KEYCLOAK_URL
+              value: "http://keycloak-service:8080"

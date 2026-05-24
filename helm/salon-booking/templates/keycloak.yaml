@@ -1,0 +1,136 @@
+{{- if .Values.keycloak.enabled }}
+# ──────────────────────────────────────────────────────────────
+# Keycloak PostgreSQL DB — Headless Service
+# ──────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak-db
+  labels:
+    app: keycloak-db
+    {{- include "salon-booking.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: keycloak-db
+  ports:
+    - port: 5432
+---
+# ──────────────────────────────────────────────────────────────
+# Keycloak PostgreSQL DB — StatefulSet
+# ──────────────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: keycloak-db
+  labels:
+    app: keycloak-db
+    {{- include "salon-booking.labels" . | nindent 4 }}
+spec:
+  serviceName: keycloak-db
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak-db
+  template:
+    metadata:
+      labels:
+        app: keycloak-db
+    spec:
+      nodeSelector:
+        node-role: {{ .Values.keycloak.db.nodeRole }}
+      containers:
+        - name: postgres
+          image: "{{ .Values.keycloak.db.image.repository }}:{{ .Values.keycloak.db.image.tag }}"
+          env:
+            - name: POSTGRES_DB
+              value: {{ .Values.keycloak.db.name | quote }}
+            - name: POSTGRES_USER
+              value: {{ .Values.keycloak.db.user | quote }}
+            - name: POSTGRES_PASSWORD
+              value: {{ .Values.keycloak.db.password | quote }}
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: keycloak-db-storage
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: keycloak-db-storage
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: {{ .Values.keycloak.db.storage }}
+---
+# ──────────────────────────────────────────────────────────────
+# Keycloak — Service
+# ──────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak-service
+  labels:
+    app: keycloak
+    {{- include "salon-booking.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: keycloak
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+# ──────────────────────────────────────────────────────────────
+# Keycloak — Deployment
+# ──────────────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  labels:
+    app: keycloak
+    {{- include "salon-booking.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      nodeSelector:
+        node-role: {{ .Values.keycloak.nodeRole }}
+      containers:
+        - name: keycloak
+          image: "{{ .Values.keycloak.image.repository }}:{{ .Values.keycloak.image.tag }}"
+          args: ["start-dev"]
+          env:
+            - name: KEYCLOAK_ADMIN
+              value: {{ .Values.keycloak.admin.username | quote }}
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              value: {{ .Values.keycloak.admin.password | quote }}
+            - name: KC_DB
+              value: postgres
+            - name: KC_DB_URL
+              value: "jdbc:postgresql://keycloak-db:5432/{{ .Values.keycloak.db.name }}"
+            - name: KC_DB_USERNAME
+              value: {{ .Values.keycloak.db.user | quote }}
+            - name: KC_DB_PASSWORD
+              value: {{ .Values.keycloak.db.password | quote }}
+            - name: KC_HOSTNAME
+              value: {{ .Values.keycloak.hostname | quote }}
+            - name: KC_HOSTNAME_PORT
+              value: {{ .Values.keycloak.hostnamePort | quote }}
+            - name: KC_HOSTNAME_STRICT
+              value: "false"
+            - name: KC_HOSTNAME_STRICT_HTTPS
+              value: "false"
+            - name: KC_HTTP_ENABLED
+              value: "true"
+            - name: KC_PROXY
+              value: "none"
+          ports:
+            - containerPort: 8080
+{{- end }}
